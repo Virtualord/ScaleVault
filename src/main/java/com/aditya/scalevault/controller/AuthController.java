@@ -1,6 +1,8 @@
 package com.aditya.scalevault.controller;
 
 import com.aditya.scalevault.dto.ApiResponse;
+import com.aditya.scalevault.dto.AuthResponse;
+import com.aditya.scalevault.dto.LoginRequest;
 import com.aditya.scalevault.dto.RegisterRequest;
 import com.aditya.scalevault.dto.UserResponse;
 import com.aditya.scalevault.service.AuthService;
@@ -37,5 +39,18 @@ public class AuthController {
         UserResponse response = authService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(ApiResponse.success("User registered successfully", response));
+    }
+
+    @PostMapping("/login")
+    @Operation(summary = "User login", description = "Authenticates user credentials and returns JWT access token")
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Successfully authenticated"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Validation failure"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Invalid credentials"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Account disabled")
+    })
+    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
+        AuthResponse response = authService.login(request);
+        return ResponseEntity.ok(ApiResponse.success("Authentication successful", response));
     }
 }
