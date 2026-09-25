@@ -3,6 +3,7 @@ package com.aditya.scalevault.controller;
 import com.aditya.scalevault.dto.ApiResponse;
 import com.aditya.scalevault.dto.AuthResponse;
 import com.aditya.scalevault.dto.LoginRequest;
+import com.aditya.scalevault.dto.RefreshTokenRequest;
 import com.aditya.scalevault.dto.RegisterRequest;
 import com.aditya.scalevault.dto.UserResponse;
 import com.aditya.scalevault.service.AuthService;
@@ -42,7 +43,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    @Operation(summary = "User login", description = "Authenticates user credentials and returns JWT access token")
+    @Operation(summary = "User login", description = "Authenticates user credentials and returns JWT access token and refresh token")
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Successfully authenticated"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Validation failure"),
@@ -52,5 +53,17 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok(ApiResponse.success("Authentication successful", response));
+    }
+
+    @PostMapping("/refresh")
+    @Operation(summary = "Rotate refresh token", description = "Rotates refresh token and issues a new JWT access token. Reusing revoked tokens invalidates all user sessions.")
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Token refreshed successfully"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Validation failure"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Invalid, expired, or revoked refresh token")
+    })
+    public ResponseEntity<ApiResponse<AuthResponse>> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        AuthResponse response = authService.refresh(request);
+        return ResponseEntity.ok(ApiResponse.success("Token refreshed successfully", response));
     }
 }

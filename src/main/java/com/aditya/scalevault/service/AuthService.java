@@ -2,11 +2,13 @@ package com.aditya.scalevault.service;
 
 import com.aditya.scalevault.dto.AuthResponse;
 import com.aditya.scalevault.dto.LoginRequest;
+import com.aditya.scalevault.dto.RefreshTokenRequest;
 import com.aditya.scalevault.dto.RegisterRequest;
 import com.aditya.scalevault.dto.UserResponse;
 import com.aditya.scalevault.entity.Role;
 import com.aditya.scalevault.entity.User;
 import com.aditya.scalevault.exception.EmailAlreadyExistsException;
+import com.aditya.scalevault.exception.InvalidTokenException;
 import com.aditya.scalevault.exception.ResourceNotFoundException;
 import com.aditya.scalevault.repository.UserRepository;
 import com.aditya.scalevault.security.JwtService;
@@ -29,16 +31,19 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
 
     public AuthService(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
             AuthenticationManager authenticationManager,
-            JwtService jwtService) {
+            JwtService jwtService,
+            RefreshTokenService refreshTokenService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
+        this.refreshTokenService = refreshTokenService;
     }
 
     @Transactional
@@ -58,7 +63,7 @@ public class AuthService {
         return UserResponse.fromEntity(savedUser);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public AuthResponse login(LoginRequest request) {
         String normalizedEmail = request.email().trim().toLowerCase();
 
@@ -71,9 +76,15 @@ public class AuthService {
             .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + securityUser.getId()));
 
         String accessToken = jwtService.generateAccessToken(user);
+        String refreshToken = refreshTokenService.createRefreshToken(user);
         long expiresIn = jwtService.getAccessTokenExpirationMs();
 
         log.info("User logged in successfully with ID: {}", user.getId());
-        return AuthResponse.of(accessToken, expiresIn, UserResponse.fromEntity(user));
+        return AuthResponse.of(accessToken, refreshToken, expiresIn, UserResponse.fromEntity(user));
+    }
+
+    @Transactional(noRollbackFor = InvalidTokenException.class)
+    public AuthResponse refresh(RefreshTokenRequest request) {
+        return refreshTokenService.rotateRefreshToken(request.refreshToken());
     }
 }

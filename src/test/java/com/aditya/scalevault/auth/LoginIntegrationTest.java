@@ -61,6 +61,7 @@ class LoginIntegrationTest extends BaseIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.accessToken").isString())
+            .andExpect(jsonPath("$.data.refreshToken").isString())
             .andExpect(jsonPath("$.data.tokenType").value("Bearer"))
             .andExpect(jsonPath("$.data.expiresIn").isNumber())
             .andExpect(jsonPath("$.data.user.id").value(user.getId().toString()))
