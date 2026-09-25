@@ -1,0 +1,68 @@
+spring:
+  application:
+    name: scalevault
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/scalevault}
+    username: ${DATABASE_USERNAME:scalevault_user}
+    password: ${DATABASE_PASSWORD:scalevault_password}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 30000
+      connection-timeout: 20000
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: false
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000ms
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+
+scalevault:
+  jwt:
+    secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+    issuer: ${JWT_ISSUER:scalevault}
+    access-token-expiration-ms: ${ACCESS_TOKEN_TTL:900000} # 15 minutes
+    refresh-token-expiration-ms: ${REFRESH_TOKEN_TTL:604800000} # 7 days
+  security:
+    cors:
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:8080}
+  rate-limit:
+    login:
+      max-attempts: 5
+      window-seconds: 300 # 5 minutes
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
