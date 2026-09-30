@@ -3,6 +3,7 @@ package com.aditya.scalevault.controller;
 import com.aditya.scalevault.dto.ApiResponse;
 import com.aditya.scalevault.dto.AuthResponse;
 import com.aditya.scalevault.dto.LoginRequest;
+import com.aditya.scalevault.dto.LogoutRequest;
 import com.aditya.scalevault.dto.RefreshTokenRequest;
 import com.aditya.scalevault.dto.RegisterRequest;
 import com.aditya.scalevault.dto.UserResponse;
@@ -65,5 +66,16 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> refresh(@Valid @RequestBody RefreshTokenRequest request) {
         AuthResponse response = authService.refresh(request);
         return ResponseEntity.ok(ApiResponse.success("Token refreshed successfully", response));
+    }
+
+    @PostMapping("/logout")
+    @Operation(summary = "User logout", description = "Revokes the active refresh token and terminates the user session")
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Logged out successfully"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Validation failure")
+    })
+    public ResponseEntity<ApiResponse<Void>> logout(@Valid @RequestBody LogoutRequest request) {
+        authService.logout(request);
+        return ResponseEntity.ok(ApiResponse.success("Logged out successfully", null));
     }
 }

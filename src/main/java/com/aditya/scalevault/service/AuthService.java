@@ -2,6 +2,7 @@ package com.aditya.scalevault.service;
 
 import com.aditya.scalevault.dto.AuthResponse;
 import com.aditya.scalevault.dto.LoginRequest;
+import com.aditya.scalevault.dto.LogoutRequest;
 import com.aditya.scalevault.dto.RefreshTokenRequest;
 import com.aditya.scalevault.dto.RegisterRequest;
 import com.aditya.scalevault.dto.UserResponse;
@@ -86,5 +87,11 @@ public class AuthService {
     @Transactional(noRollbackFor = InvalidTokenException.class)
     public AuthResponse refresh(RefreshTokenRequest request) {
         return refreshTokenService.rotateRefreshToken(request.refreshToken());
+    }
+
+    @Transactional
+    public void logout(LogoutRequest request) {
+        refreshTokenService.revokeToken(request.refreshToken());
+        log.info("User logout processed successfully");
     }
 }
