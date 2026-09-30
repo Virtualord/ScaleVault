@@ -1,6 +1,8 @@
 package com.aditya.scalevault.repository;
 
 import com.aditya.scalevault.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -15,4 +17,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmailIgnoreCase(String email);
 
     boolean existsByEmailIgnoreCase(String email);
+
+    Page<User> findByEmailContainingIgnoreCase(String email, Pageable pageable);
 }
