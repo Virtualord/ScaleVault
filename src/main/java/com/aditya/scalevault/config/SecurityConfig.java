@@ -1,5 +1,6 @@
 package com.aditya.scalevault.config;
 
+import com.aditya.scalevault.security.CustomAccessDeniedHandler;
 import com.aditya.scalevault.security.JwtAuthenticationEntryPoint;
 import com.aditya.scalevault.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,12 +35,16 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             JwtAuthenticationFilter jwtAuthenticationFilter,
-            JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) throws Exception {
+            JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
+            CustomAccessDeniedHandler customAccessDeniedHandler) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                .accessDeniedHandler(customAccessDeniedHandler)
+            )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/api/v1/health",
@@ -49,6 +54,8 @@ public class SecurityConfig {
                     "/swagger-ui.html",
                     "/actuator/health"
                 ).permitAll()
+                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/v1/users/**").hasAnyRole("USER", "ADMIN")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
